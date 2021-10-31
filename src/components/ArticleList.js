@@ -6,8 +6,6 @@ import ArticleItem from './ArticleItem';
 
 const ArticleList = ({ articles, setArticleCurrent, articlesFav, setArticlesFav, }) => {
 
-
-    console.log(articles);
     return (
         <div className="all-articles">
             {articles.map(article => {

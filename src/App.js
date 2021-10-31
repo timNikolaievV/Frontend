@@ -20,12 +20,13 @@ function App() {
   const [articleCurrent, setArticleCurrent] = useState(null);
   const [articlesFav, setArticlesFav] = useState([]);
   const [view, setView] = useState('all');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [count, setCount] = useState(0);
 
   const drawerWidth = 340;
-
-  const getArticles = async () => {
-
-    const response = await fetch("https://api.spaceflightnewsapi.net/v3/articles", {
+  const getArticles = async (limit, start) => {
+    const response = await fetch(`https://api.spaceflightnewsapi.net/v3/articles?_limit=${limit}&_start=${start}`, {
       headers: { "Content-type": "application.json" },
       method: "GET"
     })
@@ -35,8 +36,10 @@ function App() {
   }
 
   const getArticlesFav = async (articlesFav) => {
+    if (articlesFav.length === 0) {
+      return [];
+    }
     const query = articlesFav.join('&id_in=');
-    console.log(query);
     const response = await fetch(`https://api.spaceflightnewsapi.net/v3/articles?id_in=${query}`, {
       headers: { "Content-type": "application.json" },
       method: "GET"
@@ -46,11 +49,23 @@ function App() {
     return data;
   }
 
+  const getArticlesCount = async () => {
+    const response = await fetch(`https://api.spaceflightnewsapi.net/v3/articles/count`, {
+      headers: { "Content-type": "application.json" },
+      method: "GET"
+    })
+
+    const data = await response.json();
+    return data;
+  }
+
+
   const handleChange = async (event, newView) => {
     setView(newView);
 
     if (newView === 'all') {
-      const data = await getArticles();
+      
+      const data = await getArticles(rowsPerPage, page);
       setArticles(data);
     }
     else {
@@ -62,27 +77,38 @@ function App() {
         setArticles([]);
       }
     }
-
   };
 
   useEffect(() => {
     const fetch = async () => {
-      const data = await getArticles();
+      const data = await getArticles(rowsPerPage, page);
+      
       setArticles(data);
+      const count = await getArticlesCount();
+      setCount(count);
     }
 
     fetch();
 
   }, []);
 
+  useEffect(() => {
 
-  //tododdo
+    const fetch = async () => {
+      const data = await getArticles(rowsPerPage, page);
+      setArticles(data);
+    }
 
-  const [page, setPage] = useState(2);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+    fetch();
+
+  }, [rowsPerPage, page]);
+
 
   const handleChangePage = (event, newPage) => {
-    setPage(newPage);
+    if (newPage >= 0) {
+      setPage(newPage);
+    }
+    else { }
   };
 
   const handleChangeRowsPerPage = (event) => {
@@ -91,8 +117,6 @@ function App() {
   };
 
 
-
-  
 
   return (
     <div className="App">
@@ -109,15 +133,15 @@ function App() {
               <ToggleButton value="all">All</ToggleButton>
               <ToggleButton value="fav">Fav</ToggleButton>
             </ToggleButtonGroup>
-
-            <TablePagination
-              component="div"
-              count={100}
-              page={page}
-              onPageChange={handleChangePage}
-              rowsPerPage={rowsPerPage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-            />
+            {view === 'all' ?
+              <TablePagination
+                component="div"
+                count={count}
+                page={page}
+                onPageChange={handleChangePage}
+                rowsPerPage={rowsPerPage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+              /> : ""}
           </Toolbar>
         </AppBar>
         <Drawer
