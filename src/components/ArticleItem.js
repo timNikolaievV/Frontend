@@ -20,18 +20,24 @@ const ArticleItem = ({ article, setArticleCurrent, articlesFav, setArticlesFav, 
     }
 
     const changeFavArticleHandler = (id, isFav, e) => {
-
+        let articlesFavTmp;     
+        e.stopPropagation();
         if (!isFav) {
-            setArticlesFav([...articlesFav, id]);
+            articlesFavTmp = [...articlesFav, id]
         }
         else {
-            setArticlesFav(articlesFav.filter(x => x !== id));
+            articlesFavTmp = articlesFav.filter(x => x !== id);
         }
+        setArticlesFav(articlesFavTmp);
+        localStorage.setItem('articlesFav', JSON.stringify(articlesFavTmp));
+
     }
     const isFav = articlesFav.indexOf(article.id) !== -1;
     return (
         <div className="article">
-            <Card sx={{ maxWidth: 345 }}>
+            <Card 
+            sx={{ maxWidth: 345 }}
+            onClick={e => { showCurrentArticleHandler(article, e); }}>
                 <CardHeader
                     title={article.title}
                     subheader={article.publishedAt}
@@ -49,7 +55,7 @@ const ArticleItem = ({ article, setArticleCurrent, articlesFav, setArticlesFav, 
                     component="img"
                     height="200"
                     image={article.imageUrl}
-                    onClick={e => { showCurrentArticleHandler(article, e); }}
+
                 />
                 <CardContent>
                     <Typography variant="body2" color="text.secondary">

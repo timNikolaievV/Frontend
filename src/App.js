@@ -25,7 +25,8 @@ function App() {
   const [count, setCount] = useState(0);
 
   const drawerWidth = 340;
-  const getArticles = async (limit, start) => {
+  const getArticles = async (limit, page) => {
+    const start = page*limit;
     const response = await fetch(`https://api.spaceflightnewsapi.net/v3/articles?_limit=${limit}&_start=${start}`, {
       headers: { "Content-type": "application.json" },
       method: "GET"
@@ -64,7 +65,7 @@ function App() {
     setView(newView);
 
     if (newView === 'all') {
-      
+
       const data = await getArticles(rowsPerPage, page);
       setArticles(data);
     }
@@ -79,15 +80,32 @@ function App() {
     }
   };
 
+
+  const handleChangePage = (event, newPage) => {
+   
+      setPage(newPage);
+    
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+
+
   useEffect(() => {
+
     const fetch = async () => {
       const data = await getArticles(rowsPerPage, page);
-      
+
       setArticles(data);
       const count = await getArticlesCount();
       setCount(count);
     }
-
+    const articlesFavStr = localStorage.getItem('articlesFav');
+    const fav = articlesFavStr ? JSON.parse(articlesFavStr) : [];
+    setArticlesFav(fav);
     fetch();
 
   }, []);
@@ -104,20 +122,6 @@ function App() {
   }, [rowsPerPage, page]);
 
 
-  const handleChangePage = (event, newPage) => {
-    if (newPage >= 0) {
-      setPage(newPage);
-    }
-    else { }
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-
-
   return (
     <div className="App">
       <Box sx={{ display: 'flex' }}>
@@ -125,7 +129,7 @@ function App() {
         <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
           <Toolbar>
             <ToggleButtonGroup
-              color="primary"
+              color="secondary"
               value={view}
               exclusive
               onChange={handleChange}
